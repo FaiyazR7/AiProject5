@@ -6,11 +6,11 @@ import os
 import openai
 import sqlite3
 
-with open('../keys/openai.txt') as key:
+with open('keys/openai.txt') as key:
     key = key.read()
     openai.api_key = key
 
-def chat():
+def chat_get():
     if 'user_id' in session:
         return render_template('chat.html')
     else:
@@ -18,6 +18,7 @@ def chat():
         return render_template('index.html')
 
 def ans(prompt):
+    #need to insert
     return(openai.ChatCompletion.create(
     model="gpt-3.5-turbo",
     messages=[
@@ -25,6 +26,8 @@ def ans(prompt):
         {"role": "user", "content": prompt},
     ]
     )['choices'][0]['message']['content'])
+
+
 
 
 def history():
