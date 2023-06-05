@@ -12,7 +12,7 @@ app.config.keywords = exportable_variables['keywords']
 app.config.theme_color = exportable_variables['theme_color']
 
 # Load routes.
-from routes import index, login, logout, register, home, new_room
+from routes import index, login, logout, register, home, new_room, chat
 
 # Register routes.
 app.add_url_rule('/', 'index', index.index)
@@ -25,6 +25,7 @@ app.add_url_rule('/home', 'home_get', home.home_get, methods=['GET'])
 app.add_url_rule('/home', 'home_post', home.home_post, methods=['POST'])
 app.add_url_rule('/new_room', 'new_room_get', new_room.new_room_get, methods=['GET'])
 app.add_url_rule('/new_room', 'new_room_post', new_room.new_room_post, methods=['POST'])
+app.add_url_rule('/chat', 'chat_get', chat.chat_get, methods = ['GET'])
 # Start
 def start():
     # Initialize database
