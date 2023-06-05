@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    </head>
+    <body>
+        <h1>REGISTER:</h1>
+        <form action="/register" method="post" id="register">
+            <input type="text" name="username" placeholder="username" id="username"><br>
+            <input type="password" name="password" placeholder="password" id="password"><br>
+            <input type="file" name="pfp" id="pfp"><br>
+            <br>
+            <input type="submit" value="submit" id="submit">
+        </form>
+        <p>{{ error }}</p>
+        <h4>If already do have an account <a href="/login">login</a></h4>
+    </body>
+</html>

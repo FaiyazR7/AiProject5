@@ -4,9 +4,9 @@ import sqlite3
 import requests
 import os
 
-conn = sqlite3.connect('database.db')
+db = sqlite3.connect('database.db')
 
-c = conn.cursor()
+c = db.cursor()
 
 # Wipe database
 print("Wiping database...")
@@ -17,8 +17,7 @@ c.execute("DROP TABLE IF EXISTS messages")
 
 # Create users table (id, username, password, pfp, displayname)
 print("Creating users table...")
-c.execute("CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, password TEXT, pfp BLOB, displayname TEXT, "
-          "settings TEXT)")
+c.execute("CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, password TEXT, pfp BLOB, settings TEXT)")
 
 # Create rooms table (id, name, pfp, owner_id)
 print("Creating rooms table...")
@@ -35,5 +34,5 @@ c.execute("CREATE TABLE messages (id INTEGER PRIMARY KEY, room_id INTEGER, user_
 # Done
 print("Done.")
 
-conn.commit()
-conn.close()
+db.commit()
+db.close()

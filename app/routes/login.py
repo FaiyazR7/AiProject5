@@ -16,7 +16,7 @@ def login_post():
     password = request.form['password']
 
     # Attempt to login
-    cursor.execute('SELECT * FROM users WHERE username=? AND password=?', (username, password))
+    cursor.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password))
     user = cursor.fetchone()
 
     # Close cursor
@@ -24,8 +24,8 @@ def login_post():
 
     # If user exists, set session and redirect to home
     if user:
-        session['user'] = user[1]
-        return redirect('/')
+        session['user_id'] = user[0]
+        return redirect('/home')
 
     # If user does not exist, we can say the username or password is incorrect
     return render_template('login.html', error='Username or password is incorrect')
