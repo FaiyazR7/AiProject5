@@ -17,7 +17,7 @@ def new_room_post():
     c.execute("SELECT count(id) FROM rooms")
     room_id = c.fetchone()[0]
     print(f"room_id: {room_id}")
-    c.execute("INSERT INTO rooms (id, name, owner_id) VALUES (?, ?, ?)", (room_id, name, session["user_id"]))
+    c.execute("INSERT INTO rooms (name, owner_id) VALUES (?, ?)", (name, session["user_id"]))
     c.execute("INSERT INTO room_users (room_id, user_id) VALUES (?, ?)", (room_id, session["user_id"]))
     db.commit()
     db.close()

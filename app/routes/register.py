@@ -24,7 +24,10 @@ def register_post():
         return render_template('register.html', error='Account already exists, please login or choose another username')
 
     # Insert new user into database
-    cursor.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, password))
+    cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+    cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+    user_id = cursor.fetchone()[0]
+    cursor.execute("INSERT INTO room_users (room_id, user_id) VALUES (?, ?)", (0, user_id))
 
     # Commit changes to database
     app.config['conn'].commit()
