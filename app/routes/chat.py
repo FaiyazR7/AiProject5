@@ -11,7 +11,11 @@ with open('../keys/openai.txt') as key:
     openai.api_key = key
 
 def chat():
-    return render_template('chat.html')
+    if 'user_id' in session:
+        return render_template('chat.html')
+    else:
+        # Render index page by default
+        return render_template('index.html')
 
 def ans(prompt):
     return(openai.ChatCompletion.create(
