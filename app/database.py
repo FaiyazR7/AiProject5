@@ -1,41 +1,39 @@
-import sqlite3 
-DB_FILE="database.db"
+# Database initialization
 
-def connect():
-    global db
-    db = sqlite3.connect(DB_FILE)
-    return db.cursor()
+import sqlite3
+import requests
+import os
 
-def close():
-    db.commit()
-    db.close()
+conn = sqlite3.connect('database.db')
 
-def init():
-    c = connect()
-    
-    # RoomUsers 
-    c.execute("CREATE TABLE IF NOT EXISTS RoomUsers (RoomUserID int, RoomID int, UserID int)")
+c = conn.cursor()
 
-    # Rooms
-    c.execute("CREATE TABLE IF NOT EXISTS Rooms (RoomID int, Name text, UserID int, PFP blob)")
+# Wipe database
+print("Wiping database...")
+c.execute("DROP TABLE IF EXISTS users")
+c.execute("DROP TABLE IF EXISTS rooms")
+c.execute("DROP TABLE IF EXISTS room_users")
+c.execute("DROP TABLE IF EXISTS messages")
 
-    # Users
-    c.execute("CREATE TABLE IF NOT EXISTS Users (UserID int, Username text, Password text, PFP blob) ")
-    # add the admin user automatically
-    if is_empty("Users"):
-        c.execute("INSERT INTO Users VALUES (?,?,?,?)", (0, "admin", "admin", 0))
+# Create users table (id, username, password, pfp, displayname)
+print("Creating users table...")
+c.execute("CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, password TEXT, pfp BLOB, displayname TEXT, "
+          "settings TEXT)")
 
-    # Messages
-    c.execute("CREATE TABLE IF NOT EXISTS Messages (MessageID int, RoomID int, UserID int, Content text, Time DATETIME)")
+# Create rooms table (id, name, pfp, owner_id)
+print("Creating rooms table...")
+c.execute("CREATE TABLE rooms (id INTEGER PRIMARY KEY, name TEXT, pfp BLOB, owner_id INTEGER)")
 
-    close()
+# Create room_users table (id, room_id, user_id)
+print("Creating room_users table...")
+c.execute("CREATE TABLE room_users (id INTEGER PRIMARY KEY, room_id INTEGER, user_id INTEGER)")
 
-def is_empty(table):
-    c = connect()
-    count = int(list(c.execute(f"SELECT COUNT(*) FROM {table}"))[0][0])
-    print(f"count: {count}")
+# Create messages table (id, room_id, user_id, message_content, timestamp)
+print("Creating messages table...")
+c.execute("CREATE TABLE messages (id INTEGER PRIMARY KEY, room_id INTEGER, user_id INTEGER, message_content TEXT, timestamp TEXT)")
 
-    return count == 0
+# Done
+print("Done.")
 
-if __name__ == "__main__":
-    init()
+conn.commit()
+conn.close()

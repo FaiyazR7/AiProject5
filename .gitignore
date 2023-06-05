@@ -1,0 +1,4 @@
+app/database.db
+.idea
+identifier.sqlite
+.pyc

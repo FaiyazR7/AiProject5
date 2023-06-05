@@ -1,99 +1,47 @@
 import flask
-from flask import Flask, render_template, session, request
-import json
-import database
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+import sqlite3
 
-app = Flask(__name__)
-app.secret_key = 'the random string'
+# Load configuration from config.py
+from config import exportable_variables
 
-# Fixes POST and GET issues by using code 307
-def redirect(path):
-    return flask.redirect(path, 307)
+app = Flask(exportable_variables['name'])
+app.config.description = exportable_variables['description']
+app.config.author = exportable_variables['author']
+app.config.keywords = exportable_variables['keywords']
+app.config.theme_color = exportable_variables['theme_color']
 
-@app.route("/", methods=["GET", "POST"])
-def root():
-    database.init()
-    cookies = False
-    if "UserID" in session:
-        return redirect("/home")
-    else:
-        return redirect("/login")
+# Load routes.
+from routes import index, login, logout, register
 
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "GET":
-        return render_template("login.html", error="")
-    
-    if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+# Register routes.
+app.add_url_rule('/', 'index', index.index)
+app.add_url_rule('/login', 'login_get', login.login_get)
+app.add_url_rule('/login', 'login_post', login.login_post, methods=['POST'])
+app.add_url_rule('/logout', 'logout', logout.logout)
+app.add_url_rule('/register', 'register_get', register.register_get)
+app.add_url_rule('/register', 'register_post', register.register_post, methods=['POST'])
 
-        c = database.connect()
-        c.execute("SELECT * FROM Users WHERE Username=? AND Password=?", (username, password))
-        result = c.fetchone()
-        if result != None:
-            session["UserID"] = result[0] # UserID
-            database.close()
-            return redirect("/home")
-        else:
-            error = "Invalid Username or Password"
-            database.close()
-            return render_template("login.html", error=error)
-        
+# Start
+def start():
+    # Initialize database
+    conn = sqlite3.connect('database.db', check_same_thread=False)
+    c = conn.cursor()
 
-@app.route("/register", methods=["GET", "POST"])
-def register(error=""):
-    if request.method == "GET":
-        return render_template("register.html", error="")
-    
-    if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+    # Add connection to global config
+    app.config['conn'] = conn
 
-        c = database.connect()
-        c.execute("SELECT count(*) FROM Users WHERE Username=?", (username,))
-        result = c.fetchone()[0]
-        if result == None:
-            id = int(list(c.execute("SELECT count(UserID) FROM Users"))[0][0])
-            c.execute("INSERT INTO Users VALUES (?,?,?,?)", (id, username, password, 0))
-            database.close()
-            return redirect("/login")
-        else:
-            error="username already exists"
-            database.close()
-            return render_template("register.html", error=error)
+    # Check if users table exists
+    c.execute(''' SELECT count(name) FROM sqlite_master WHERE type='table' AND name='users' ''')
 
-@app.route("/logout", methods=["GET", "POST"])
-def logout(error=""):
-    if "UserID" in session:
-        session.pop("UserID")
+    if c.fetchone()[0] == 0:
+        # Exit with message
+        print('No users table found, did you run db_init.py?')
+        exit()
 
-    return redirect("/login")
+    # Set secret key
+    app.secret_key = 'the random string' * 25 + 'qwerqweajsdmlasdasd that\'s crazy'
+    app.run(debug=True, host='0.0.0.0', port=5000)
 
-@app.route("/home", methods=["POST"])
-def home():
-    UserID = session["UserID"]
-    c = database.connect()
-    c.execute("SELECT RoomID FROM RoomUsers WHERE UserID=", (UserID,))
-    RoomIDs = c.fetchall()
-    rooms = []
-    for RoomID in RoomIDs:
-        c.execute("SELECT * FROM Rooms WHERE RoomID=", (RoomID,))
-        room = c.fetchone()
-        if room != None: # Should never happen
-            rooms.append(room[0])
-    return render_template("home.html", rooms=rooms)
-
-@app.route("/room/<int:RoomID>")
-def room(RoomID):
-    c = database.connect()
-    c.execute("SELECT * FROM Rooms WHERE RoomID=?", (RoomID,))
-    room = c.fetchone()[0]
-    
-    c.execute("SELECT * FROM Messages WHERE RoomID=? SORT BY Time DESC")
-    messages = c.fetchall()
-    return render_template("room.html", messages=messages)
-
-if __name__ == "__main__":
-    app.debug = True
-    app.run(host='0.0.0.0', port=8000)
+if __name__ == '__main__':
+    start()
