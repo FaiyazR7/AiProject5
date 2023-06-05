@@ -1,12 +1,8 @@
 <!DOCTYPE html>
 <html>
     <head>
-        {% include('partials/meta.html', { 'title': 'Home' }) %}
-        {% include('partials/css.html') %}
-        {% include('partials/js.html') %}
     </head>
     <body>
-        {% include('partials/header.html', { 'user': user }) %}
         <h1>NEW ROOM:</h1>
         <form action="/new_room" method="post" id="new_room">
             <input type="text" name="name" placeholder="name" id="name"><br>
