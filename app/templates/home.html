@@ -8,27 +8,12 @@
 
         <div class="row">
             <div class="rooms">
-                <h4>make a <a href="/new_room">new room</a></h4>
-
                 {% for room in rooms %}
-                    <form action="/home" method="post" name="rooms">
+                    <form method="post" name="rooms">
                         <input type="hidden" name="room_id" value="{{room[0]}}">
                         <input type="submit" value="{{room[1]}}">
                     </form>
                 {% endfor %}
-            </div>
-            <div class="room">
-                <h1>ROOM: {{room[1]}}</h1>
-                {% for message in messages %}
-                    <h4>{{message[2]}}: {{message[3]}} ({{message[4]}})</h4>
-                    <br>
-                {% endfor %}
-                <br>
-                <form action="/home" method="post" name="message">
-                    <input type="hidden" name="room_id" value="{{selected_room_id}}">
-                    <input type="text" name="content">
-                    <input type="submit" value="send">
-                </form>
             </div>
         </div> 
     </body>

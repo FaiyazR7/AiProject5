@@ -8,12 +8,10 @@ def index():
     # If user is logged in
     if 'user_id' in session:
         # Fetch user data from database by username
-        db = sqlite3.connect("database.db")
-        c = db.cursor()
+        c = app.config['conn'].cursor()
 
         c.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],))
         user = c.fetchone()
-
         # Is none? Redirect to login page
         if not user:
             return redirect('/login')

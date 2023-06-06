@@ -25,6 +25,7 @@ def login_post():
     # If user exists, set session and redirect to home
     if user:
         session['user_id'] = user[0]
+        session["current_room_id"] = 1
         return redirect('/home')
 
     # If user does not exist, we can say the username or password is incorrect

@@ -21,4 +21,5 @@ def new_room_post():
     c.execute("INSERT INTO room_users (room_id, user_id) VALUES (?, ?)", (room_id, session["user_id"]))
     db.commit()
     db.close()
+    c.lastrowid
     return redirect("/home")

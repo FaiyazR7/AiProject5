@@ -4,9 +4,9 @@ import json, os, openai, sqlite3, datetime
 from urllib.request import urlopen
 
 
-with open('keys/openai.txt') as key:
-    key = key.read()
-    openai.api_key = key
+# with open('keys/openai.txt') as key:
+#     key = key.read()
+#     openai.api_key = key
 
 def chat_get():
     if 'user_id' in session:

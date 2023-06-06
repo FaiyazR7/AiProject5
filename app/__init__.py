@@ -11,8 +11,9 @@ app.config.author = exportable_variables['author']
 app.config.keywords = exportable_variables['keywords']
 app.config.theme_color = exportable_variables['theme_color']
 
+
 # Load routes.
-from routes import index, login, logout, register, home, new_room, chat
+from routes import index, login, logout, register, home, new_room, chat, room
 
 # Register routes.
 app.add_url_rule('/', 'index', index.index)
@@ -25,7 +26,9 @@ app.add_url_rule('/home', 'home_get', home.home_get, methods=['GET'])
 app.add_url_rule('/home', 'home_post', home.home_post, methods=['POST'])
 app.add_url_rule('/new_room', 'new_room_get', new_room.new_room_get, methods=['GET'])
 app.add_url_rule('/new_room', 'new_room_post', new_room.new_room_post, methods=['POST'])
-app.add_url_rule('/chat', 'chat_get', chat.chat_get, methods = ['GET'])
+# add rule for room
+app.add_url_rule('/room/<id>', 'room_get', room.room_get, methods=['GET'])
+app.add_url_rule('/room/<id>', 'room_post', room.room_post, methods=['POST'])
 # Start
 def start():
     # Initialize database
@@ -34,7 +37,6 @@ def start():
 
     # Add connection to global config
     app.config['conn'] = conn
-
     # Check if users table exists
     c.execute(''' SELECT count(name) FROM sqlite_master WHERE type='table' AND name='users' ''')
 
