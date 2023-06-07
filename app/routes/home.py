@@ -18,4 +18,5 @@ def home_get():
         return redirect("/login")
 
 def home_post():
-    return redirect("/home")
+    room_id = request.form["room_id"]
+    return redirect(f"/room/{room_id}")
