@@ -1,4 +1,5 @@
 app/database.db
+app/keys/openai.txt
 .idea
 identifier.sqlite
 .pyc
