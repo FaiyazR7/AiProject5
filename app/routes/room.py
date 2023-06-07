@@ -1,6 +1,7 @@
 from flask import render_template, request, redirect, session
 from flask import current_app as app
 from datetime import datetime
+import chat
 def room_get(id):
     # Check if user is logged in
     if not "user_id" in session:
@@ -44,13 +45,17 @@ def room_post(id):
     if "content" in request.form:
         content = request.form["content"]
         current_room_id = id
-
+        response = None
+        if (content[0] == "!"):
+            response = chat.ans(content)
         c.execute("SELECT count(id) FROM messages")
         message_id = c.fetchone()[0]
         time = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
         print(time)
         c.execute("INSERT INTO messages VALUES (?, ?, ?, ?, ?)", (message_id, current_room_id, session["user_id"], content, time))
-        print(f"content: {content}")
+        if (response is not None):
+            c.execute("INSERT INTO messages VALUES (?, ?, ?, ?, ?)", (message_id, current_room_id, 1, response, time))
+        #print(f"content: {content}")
         c.close()
 
     return redirect(f"/room/{id}")
