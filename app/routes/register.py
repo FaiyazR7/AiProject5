@@ -26,7 +26,7 @@ def register_post():
     # Insert new user into database
     c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
     c.execute("SELECT id FROM users WHERE username = ?", (username,))
-    user_id = c.fetchone()
+    user_id = c.fetchone()[0]
     c.execute("INSERT INTO room_users (room_id, user_id) VALUES (?, ?)", (0, user_id))
     # Commit changes to database
     c.close()
