@@ -1,5 +1,6 @@
 app/database.db
-app/keys/openai.txt
+app/keys/*
 .idea
 identifier.sqlite
-.pyc
+app/__pycache__/*
+app/routes/__pycache__/*
