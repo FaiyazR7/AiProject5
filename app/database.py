@@ -28,7 +28,7 @@ c.execute("INSERT INTO rooms (id, name, owner_id) VALUES (?, ?, ?)", (0, 'main',
 # Create room_users table (id, room_id, user_id)
 print("Creating room_users table...")
 c.execute("CREATE TABLE room_users (id INTEGER PRIMARY KEY, room_id INTEGER, user_id INTEGER)")
-c.execute("INSERT INTO room_users (room_id, user_id) VALUES (?, ?, ?)", (0, 0, 0))
+c.execute("INSERT INTO room_users (id, room_id, user_id) VALUES (?, ?, ?)", (0, 0, 0))
 
 # Create messages table (id, room_id, user_id, message_content, timestamp)
 print("Creating messages table...")
