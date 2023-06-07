@@ -10,7 +10,7 @@ def register_get():
 
 def register_post():
     # Get sqlite c from app config
-    c = app.config['conn'].cursor()
+    c = app.config['db'].cursor()
 
     # Get username and password from form
     username = request.form['username']

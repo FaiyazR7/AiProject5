@@ -4,7 +4,7 @@ from datetime import datetime
 
 def home_get():
     if "user_id" in session:
-        c = app.config["conn"].cursor()
+        c = app.config["db"].cursor()
         c.execute("SELECT room_id FROM room_users WHERE user_id = ?", (session["user_id"],))
         room_ids = c.fetchall()
         print(room_ids)
@@ -12,7 +12,7 @@ def home_get():
         for room_id in room_ids:
             c.execute("SELECT * FROM rooms WHERE id = ?", (room_id[0],))
             rooms.append(c.fetchone())
-
+        c.close()
         return render_template('home.html', rooms=rooms,)
     else:
         return redirect("/login")

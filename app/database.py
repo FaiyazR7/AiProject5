@@ -19,7 +19,7 @@ c.execute("DROP TABLE IF EXISTS messages")
 print("Creating users table...")
 c.execute("CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, password TEXT, pfp BLOB, settings TEXT)")
 c.execute("INSERT INTO users (id, username, password) VALUES (?, ?, ?)", (0, 'admin', 'admin'))
-c.execute("INSERT INTO users (id, username, password) VALUES (?, ?, ?)", (1, 'GPT', None))
+c.execute("INSERT INTO users (id, username, password) VALUES (?, ?, ?)", (1, 'chatGPT', None))
 
 # Create rooms table (id, name, pfp, owner_id)
 print("Creating rooms table...")

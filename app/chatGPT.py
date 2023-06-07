@@ -4,7 +4,7 @@ import json, os, openai, sqlite3, datetime
 from urllib.request import urlopen
 
 
-with open('keys/openai.txt') as key:
+with open("./keys/openai.txt") as key:
     key = key.read()
     openai.api_key = key
 

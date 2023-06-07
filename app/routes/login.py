@@ -8,19 +8,18 @@ def login_get():
     return render_template('login.html')
 
 def login_post():
-    # Get sqlite cursor from app config
-    cursor = app.config['conn'].cursor()
+    c = app.config['db'].cursor()
 
     # Get username and password from form
     username = request.form['username']
     password = request.form['password']
 
     # Attempt to login
-    cursor.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password))
-    user = cursor.fetchone()
+    c.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password))
+    user = c.fetchone()
 
-    # Close cursor
-    cursor.close()
+    # Close c
+    c.close()
 
     # If user exists, set session and redirect to home
     if user:

@@ -13,7 +13,7 @@ app.config.theme_color = exportable_variables['theme_color']
 
 
 # Load routes.
-from routes import index, login, logout, register, home, new_room, chat, room
+from routes import index, login, logout, register, home, new_room, room
 
 # Register routes.
 app.add_url_rule('/', 'index', index.index)
@@ -32,11 +32,11 @@ app.add_url_rule('/room/<id>', 'room_post', room.room_post, methods=['POST'])
 # Start
 def start():
     # Initialize database
-    conn = sqlite3.connect('database.db', check_same_thread=False)
-    c = conn.cursor()
+    db: sqlite3.Connection = sqlite3.connect('database.db', check_same_thread=False)
+    app.config['db'] = db # Add connection to global config
 
-    # Add connection to global config
-    app.config['conn'] = conn
+    c = db.cursor()
+
     # Check if users table exists
     c.execute(''' SELECT count(name) FROM sqlite_master WHERE type='table' AND name='users' ''')
 

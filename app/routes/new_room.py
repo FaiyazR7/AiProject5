@@ -11,7 +11,11 @@ def new_room_get():
 def new_room_post():
     name = request.form["name"]
     print(name)
-    db = sqlite3.connect('database.db')
+    if name == "":
+        error = "Please enter a name for the room"
+        return render_template('new_room.html', error=error)
+    
+    db = app.config['db']
     c = db.cursor()
     
     c.execute("SELECT count(id) FROM rooms")
@@ -19,7 +23,6 @@ def new_room_post():
     print(f"room_id: {room_id}")
     c.execute("INSERT INTO rooms (name, owner_id) VALUES (?, ?)", (name, session["user_id"]))
     c.execute("INSERT INTO room_users (room_id, user_id) VALUES (?, ?)", (room_id, session["user_id"]))
+    c.close()
     db.commit()
-    db.close()
-    c.lastrowid
     return redirect("/home")
