@@ -115,6 +115,9 @@ def handle_message(data):
         # Now create a chat completion request.
         completion = chatGPT.chat_completion(messages_for_ai)["content"]
 
+        # Timestamp
+        timestamp = datetime.datetime.now()
+
         # Save response to database.
         c.execute('INSERT INTO messages (room_id, user_id, content, timestamp) VALUES (?, ?, ?, ?)', (room_id, 1, completion, timestamp))
 
@@ -145,7 +148,7 @@ def start():
 
     # Set secret key
     app.secret_key = 'the random string' * 25 + 'qwerqweajsdmlasdasd that\'s crazy'
-    socketio.run(app, debug=True, host='0.0.0.0', port=8000)
+    socketio.run(app, host='0.0.0.0', port=8000)
 
 if __name__ == '__main__':
     start()
