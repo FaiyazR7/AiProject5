@@ -97,7 +97,7 @@
             <img src="${data.user.profile_pic}" class="w-8 h-8 rounded-full mr-2">
             <div class="flex flex-col">
                 <span class="text-gray-400 text-sm">${data.user.username}</span>
-                <span class="text-gray-400 text-xs">${new Date(data.timestamp).toLocaleString()}</span>
+                <span class="text-gray-400 text-xs">${new Date(data.timestamp * 1000).toLocaleString()}</span>
             </div>
         `;
         let messageElement = document.createElement('div');
