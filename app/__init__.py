@@ -52,18 +52,10 @@ app.add_url_rule('/api/messages/<int:room_id>/<int:before>', 'api_get_messages',
 @socketio.on('connect')
 def connect():
     print("Client connected")
-    # Add user to online users
-    online_users.append(session['user_id'])
-    # Emit the online users list to all clients
-    emit('online_users', {'online_users': online_users}, broadcast=True)
 
 @socketio.on('disconnect')
 def disconnect():
     print("Client disconnected")
-    # Remove user from online users
-    online_users.remove(session['user_id'])
-    # Emit the online users list to all clients
-    emit('online_users', {'online_users': online_users}, broadcast=True)
 
 @socketio.on('join_room')
 def join(data):
