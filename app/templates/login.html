@@ -1,16 +1,101 @@
 <!DOCTYPE html>
-<html>
-    <head>
-    </head>
-    <body>
-        <h1>LOGIN:</h1>
-        <form action="/login" method="post" id="login">
-            <input type="text" name="username" placeholder="username" id="username">
-            <input type="password" name="password" placeholder="password" id="password">
-            <input type="submit" value="submit" id="submit">
-        </form>
-        <p>{{ error }}</p>
-        <h4>If you do not yet have an account <a href="/register">register</a></h4>
-        
-    </body>
+<html lang="en" class="bg-gray-900">
+<head>
+    {% with title="Login" %}
+        {% include('partials/meta.html') %}
+    {% endwith %}
+    {% include('partials/css.html') %}
+    {% include('partials/js.html') %}
+</head>
+<body>
+{% include('partials/header.html', { 'user': user }) %}
+<!-- Create a responsive and beautiful Tailwindcss design for the login page of a chat application. -->
+<div class="container mx-auto h-full">
+    <div class="flex flex-wrap">
+        <div class="w-full md:w-1/2">
+            <div class="flex flex-row justify-center items-center p-4 h-full">
+                <div class="p-4">
+                    <h1 class="text-5xl font-bold"><span
+                            class="bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-blue-500 stinger">The GPT Arena</span>
+                    </h1>
+                    <p class="text-gray-600 paralucent text-xl">Welcome back! Log in to continue.</p>
+                    <!-- Login form -->
+                    <div class="mt-4">
+                        <div class="mb-4">
+                            <label for="username" class="block text-gray-200 font-medium paralucent">Username</label>
+                            <input type="text" id="username" name="username" placeholder="Enter your username"
+                                   class="paralucent w-full p-2 rounded-lg bg-gray-800 text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div class="mb-4">
+                            <label for="password" class="block text-gray-200 font-medium paralucent">Password</label>
+                            <input type="password" id="password" name="password" placeholder="Enter your password"
+                                   class="paralucent w-full p-2 rounded-lg bg-gray-800 text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div class="flex justify-center items-center">
+                            <button onclick="handleLogin()">
+                                <!-- Green to blue gradient -->
+                                <div class="bg-gradient-to-r from-green-400 to-blue-500 rounded-full p-[2px]">
+                                    <div class="bg-gray-900 px-6 py-0.5 rounded-full">
+                                        <!-- Use gradient for text color -->
+                                        <div class="bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-blue-500 font-bold paralucent">
+                                            Login
+                                        </div>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <a href="/register" class="text-blue-500 hover:underline paralucent">Don't have an account?
+                            </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="w-full md:w-1/2">
+            <div class="p-4">
+                <img src="https://picsum.photos/500/300" alt="Chat App" class="rounded-lg">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function handleLogin () {
+        const username = document.getElementById('username').value
+        const password = document.getElementById('password').value
+
+        if (username === '' || password === '') {
+            errorNotification("Please fill in both the username and password fields.")
+            return
+        }
+
+        fetch('/api/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, password })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Notify the user that they have successfully logged in, then redirect in 3 seconds.
+                    successNotification("You have successfully logged in! Redirecting you to the homepage...")
+                    setTimeout(() => {
+                        window.location.href = '/home'
+                    }, 3000)
+                } else {
+                    // Get error message from the response and display it to the user.
+                    errorNotification(data.error)
+                }
+            })
+            .catch(err => {
+                console.log(err)
+                errorNotification("Something went wrong, please try again later.");
+                errorNotification(err.stack)
+            });
+    }
+</script>
+</body>
 </html>

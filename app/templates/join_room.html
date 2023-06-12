@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-gray-900">
+<head>
+    {% with title="Invitation to Join Room" %}
+        {% include('partials/meta.html') %}
+    {% endwith %}
+    {% include('partials/css.html') %}
+    {% include('partials/js.html') %}
+</head>
+<body>
+{% include('partials/header.html', { 'user': user }) %}
+
+<div class="container mx-auto h-full">
+    <div class="flex flex-wrap">
+        <div class="w-full">
+            <div class="flex flex-row justify-center items-center p-4 h-full">
+                <div class="p-4">
+                    <h1 class="text-5xl font-bold">
+                        <span class="bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-blue-500 stinger">The GPT Arena</span>
+                    </h1>
+                    <p class="text-gray-600 paralucent text-xl">You have been invited to join the room {{ room.name }}
+                        owned by {{ room.owner.username }} with {{ room.user_count }} members.</p>
+
+                    <!-- Join room button -->
+                    <div class="mt-4">
+                        <button onclick="handleJoinRoom()">
+                            <!-- Green to blue gradient -->
+                            <div class="bg-gradient-to-r from-green-400 to-blue-500 rounded-full p-[2px]">
+                                <div class="bg-gray-900 px-6 py-0.5 rounded-full">
+                                    <!-- Use gradient for text color -->
+                                    <div class="bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-blue-500 font-bold paralucent">
+                                        Join Room
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="store-user-id" class="hidden">
+                                {{ user.id }}
+                            </div>
+                            <div id="store-room-id" class="hidden">
+                                {{ room.room_id }}
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let roomId = document.getElementById('store-room-id').innerText;
+
+    // Handle join room
+    function handleJoinRoom() {
+        fetch('/api/rooms/join/' + roomId.trim(), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                'user_id': document.getElementById('store-user-id').innerHTML
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Provide a notification
+                    successNotification("You've joined the room successfully! Redirecting you to the room page...");
+                    setTimeout(() => {
+                        window.location.href = '/room/' + roomId.trim() + '';
+                    }, 3000);
+                } else {
+                    errorNotification("There was an error joining the room. Please try again later.");
+                    errorNotification(data.message);
+                }
+            })
+            .catch(error => {
+                errorNotification("There was an error joining the room. Please try again later.");
+                errorNotification(error.stack)
+                console.error(error);
+            });
+    }
+</script>
+</body>
+</html>

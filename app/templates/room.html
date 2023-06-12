@@ -1,22 +1,211 @@
 <!DOCTYPE html>
+<html lang="en" class="bg-gray-900">
+<head>
+    {% with title="Chat" %}
+        {% include('partials/meta.html') %}
+    {% endwith %}
+    {% include('partials/css.html') %}
+    {% include('partials/js.html') %}
+</head>
+<body>
+{% include('partials/header.html', { 'user': user }) %}
+<div id="store-user-id">{{ user.user_id }}</div>
+<div id="store-room-id">{{ room.room_id }}</div>
+<div class="container mx-auto h-full">
+    <div class="flex flex-wrap">
+        <div class="w-3/4">
+            <div class="flex flex-row justify-center items-center p-4 h-full">
+                <div class="p-4">
+                    <h1 class="text-5xl font-bold">
+                        <span class="bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-blue-500 stinger">The GPT Arena</span>
+                    </h1>
+                    <p class="text-gray-600 paralucent text-xl">Welcome to the chatroom! Start a conversation and
+                        connect with others.</p>
 
-<html>
-    <head>
-    </head>
-    <body>
-        <div class="room">
-            <h1>ROOM: {{room[1]}}</h1>
-            {% for message in messages %}
-                <h4>{{message[2]}}: {{message[3]}} ({{message[4]}})</h4>
-            {% endfor %}
-            <br>
-            <form method="post" name="message">
-                <input type="hidden" name="room_id" value="{{selected_room_id}}">
-                <input type="text" name="content" autofocus>
-                <input type="submit" value="send">
-            </form>
+                    <!-- Chat messages container -->
+                    <div class="mt-4">
+                        <div id="message-container" class="bg-gray-800 rounded-lg p-4 h-96 overflow-y-auto paralucent">
+                            <!-- Messages will be dynamically added here -->
+                        </div>
+                    </div>
+
+                    <!-- Message input -->
+                    <div class="mt-4">
+                        <textarea id="message-input" type="text" placeholder="Type your message..."
+                                  class="bg-gray-800 text-white rounded-lg py-2 px-4 w-full focus:outline-none focus:ring-2 focus:ring-blue-600"></textarea>
+                    </div>
+                </div>
+            </div>
         </div>
-        <h4>Back to <a href="/home">home</a></h4>
-    </body>
-    <script src="../static/js/form.js"></script>
+        <div class="w-1/4">
+            <div class="flex flex-row justify-center items-center p-4 h-full">
+                <div class="p-4">
+                    <h2 class="text-2xl font-bold paralucent text-gray-400">Users in this room</h2>
+                    <div id="user-list" class="mt-4">
+                        {% for user in room_users %}
+                            <div class="flex flex-row justify-start items-center mb-2">
+                                <img src="{{ user.profile_pic }}" class="w-8 h-8 rounded-full mr-2">
+                                <div class="flex flex-col">
+                                    <span class="text-gray-400 paralucent">{{ user.username }}</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.socket.io/4.6.2/socket.io.min.js"></script>
+<script>
+    // Connect to the Socket.IO server
+    const socket = io('http://localhost:8000');
+
+    // Get the user ID and room ID
+    const userId = document.getElementById('store-user-id').innerHTML;
+    const roomId = document.getElementById('store-room-id').innerHTML;
+
+    // Join the room (handled with flask socketio's join_room)
+    socket.emit('join_room', {
+        'user_id': userId,
+        'room_id': roomId
+    });
+
+    // Event handler for message send to the server
+    document.getElementById('message-input').addEventListener('keyup', function (e) {
+        if (e.keyCode === 13) {
+            const message = document.getElementById('message-input').value;
+            console.log("Sending message: " + message)
+            socket.emit('message', {
+                'user_id': userId,
+                'room_id': roomId,
+                'message': message
+            });
+            document.getElementById('message-input').value = '';
+        }
+    });
+
+    // Event handler for message received from the server
+    socket.on('message', function (data) {
+        const messageContainer = document.getElementById('message-container');
+        // Add two things: the user info (user profile picture, username, and timestamp.)
+        // And the message itself.
+        let messageInfoElement = document.createElement('div');
+        messageInfoElement.classList.add('flex', 'flex-row', 'justify-start', 'items-center', 'mb-2');
+        messageInfoElement.innerHTML = `
+            <img src="${data.user.profile_pic}" class="w-8 h-8 rounded-full mr-2">
+            <div class="flex flex-col">
+                <span class="text-gray-400 text-sm">${data.user.username}</span>
+                <span class="text-gray-400 text-xs">${new Date(data.timestamp).toLocaleString()}</span>
+            </div>
+        `;
+        let messageElement = document.createElement('div');
+        if (data.user.user_id == userId) {
+            messageElement.classList.add('bg-blue-600', 'text-white', 'rounded-lg', 'py-2', 'px-4', 'w-max');
+        } else {
+            messageElement.classList.add('bg-gray-700', 'text-white', 'rounded-lg', 'py-2', 'px-4', 'w-max');
+        }
+        console.log(data.message);
+        messageElement.innerHTML = "<p class='max-w-3xl w-full'>" + message.content + "</p>";
+        let messageWrapperElement = document.createElement('div');
+        messageWrapperElement.classList.add('flex', 'flex-col', 'justify-start', 'mb-4');
+        if (data.user.user_id == userId) {
+            messageWrapperElement.classList.add('items-end');
+        } else {
+            messageWrapperElement.classList.add('items-start');
+        }
+        messageWrapperElement.appendChild(messageInfoElement);
+        messageWrapperElement.appendChild(messageElement);
+        // If message is from the current user, wrap it in a horizontal flexbox that aligns to the right
+        if (data.user.user_id == userId) {
+            let messageWrapperElementWrapper = document.createElement('div');
+            messageWrapperElementWrapper.classList.add('flex', 'flex-row', 'justify-end', 'items-end');
+            messageWrapperElementWrapper.appendChild(messageWrapperElement);
+            messageWrapperElement = messageWrapperElementWrapper;
+        } else {
+            // Otherwise, wrap it in a horizontal flexbox that aligns to the left
+            let messageWrapperElementWrapper = document.createElement('div');
+            messageWrapperElementWrapper.classList.add('flex', 'flex-row', 'justify-start', 'items-start');
+            messageWrapperElementWrapper.appendChild(messageWrapperElement);
+            messageWrapperElement = messageWrapperElementWrapper;
+        }
+        messageContainer.appendChild(messageWrapperElement);
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+    });
+
+    let beforeTimestamp = 0;
+
+    function loadMessages() {
+        console.log("Loading more messages...");
+
+        // Create a request to /api/messages/<room_id>/<before_timestamp>
+        const request = new XMLHttpRequest();
+        request.open('GET', `/api/messages/${roomId}/${beforeTimestamp}`);
+
+        // Parse response (it's an array of messages)
+        request.onload = () => {
+            const data = JSON.parse(request.responseText);
+            // Add each message to the top of the message container
+            const messageContainer = document.getElementById('message-container');
+            data.messages.forEach(message => {
+                let messageInfoElement = document.createElement('div');
+                messageInfoElement.classList.add('flex', 'flex-row', 'justify-start', 'items-center', 'mb-2');
+                messageInfoElement.innerHTML = `
+                        <img src="${message.user.profile_pic}" class="w-8 h-8 rounded-full mr-2">
+                        <div class="flex flex-col">
+                            <span class="text-gray-400 text-sm">${message.user.username}</span>
+                            <span class="text-gray-400 text-xs">${new Date(message.timestamp * 1000).toLocaleString()}</span>
+                        </div>
+                    `;
+                let messageElement = document.createElement('div');
+                if (message.user.user_id == userId) {
+                    messageElement.classList.add('bg-blue-600', 'text-white', 'rounded-lg', 'py-2', 'px-4', 'w-max');
+                } else {
+                    messageElement.classList.add('bg-gray-700', 'text-white', 'rounded-lg', 'py-2', 'px-4', 'w-max');
+                }
+                messageElement.innerHTML = "<p class='max-w-3xl w-full'>" + message.content + "</p>";
+                let messageWrapperElement = document.createElement('div');
+                messageWrapperElement.classList.add('flex', 'flex-col', 'justify-start', 'mb-4');
+                if (message.user.user_id == userId) {
+                    messageWrapperElement.classList.add('items-end');
+                } else {
+                    messageWrapperElement.classList.add('items-start');
+                }
+                messageWrapperElement.appendChild(messageInfoElement);
+                messageWrapperElement.appendChild(messageElement);
+                // If message is from the current user, wrap it in a horizontal flexbox that aligns to the right
+                if (message.user.user_id == userId) {
+                    let messageWrapperElementWrapper = document.createElement('div');
+                    messageWrapperElementWrapper.classList.add('flex', 'flex-row', 'justify-end', 'items-end');
+                    messageWrapperElementWrapper.appendChild(messageWrapperElement);
+                    messageWrapperElement = messageWrapperElementWrapper;
+                } else {
+                    // Otherwise, wrap it in a horizontal flexbox that aligns to the left
+                    let messageWrapperElementWrapper = document.createElement('div');
+                    messageWrapperElementWrapper.classList.add('flex', 'flex-row', 'justify-start', 'items-start');
+                    messageWrapperElementWrapper.appendChild(messageWrapperElement);
+                    messageWrapperElement = messageWrapperElementWrapper;
+                }
+                messageContainer.insertBefore(messageWrapperElement, messageContainer.firstChild);
+                beforeTimestamp = Math.round(message.timestamp);
+            });
+            // Scroll down to where it was before
+            messageContainer.scrollTop = messageContainer.scrollHeight - e.target.scrollHeight;
+        };
+
+        // Send request
+        request.send();
+    }
+
+    // When it is scrolled up to top, load more messages
+    document.getElementById('message-container').addEventListener('scroll', function (e) {
+        if (e.target.scrollTop == 0) {
+            loadMessages();
+        }
+    });
+
+    loadMessages();
+</script>
+</body>
 </html>

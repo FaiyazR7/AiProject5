@@ -8,16 +8,22 @@ def index():
     # If user is logged in
     if 'user_id' in session:
         # Fetch user data from database by username
-        c = app.config['db'].cursor()
+        c = app.config['conn'].cursor()
 
         c.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],))
         user = c.fetchone()
         # Is none? Redirect to login page
         if not user:
             return redirect('/login')
-        c.close()
-        # Render index page with user data and tracked teams
-        return render_template('index.html', user_id=user[0])
+
+        # Build user object
+        user = {
+          'user_id': user[0],
+          'username': user[1],
+          'profile_pic': user[3]
+        }
+
+        return render_template('index.html', user=user)
 
     # If user is not logged in
     else:

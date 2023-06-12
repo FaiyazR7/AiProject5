@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-gray-900">
+<head>
+    {% with title="Settings" %}
+        {% include('partials/meta.html') %}
+    {% endwith %}
+    {% include('partials/css.html') %}
+    {% include('partials/js.html') %}
+</head>
+<body>
+{% include('partials/header.html', { 'user': user }) %}
+
+<div class="container mx-auto h-full">
+    <div class="flex flex-wrap">
+        <div class="w-full">
+            <div class="flex flex-row justify-center items-center p-4 h-full">
+                <div class="p-4">
+                    <h1 class="text-5xl font-bold">
+                        <span class="bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-blue-500 stinger">Settings</span>
+                    </h1>
+                    <p class="text-gray-600 paralucent text-xl">Update your profile picture, manage your rooms,
+                        download your data, and more.</p>
+
+                    <!-- Profile Picture -->
+                    <div class="mt-8">
+                        <h2 class="text-2xl font-bold text-green-400 paralucent">Profile Picture</h2>
+                        <div class="flex flex-row items-center mt-4">
+                            <img class="w-16 h-16 rounded-full mr-4" src="{{ user.profile_pic }}"
+                                 alt="Profile Picture">
+                            <button onclick="changeProfilePicture()">
+                                <!-- Green to blue gradient -->
+                                <div class="bg-gradient-to-r from-green-400 to-blue-500 rounded-full p-[2px]">
+                                    <div class="bg-gray-900 px-6 py-0.5 rounded-full">
+                                        <!-- Use gradient for text color -->
+                                        <div class="bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-blue-500 font-bold paralucent">
+                                            Change Profile Picture
+                                        </div>
+                                    </div>
+                                </div>
+                            </button>
+                            <button onclick="resetProfilePicture()">
+                                <!-- Green to blue gradient -->
+                                <div class="bg-gradient-to-r from-green-400 to-blue-500 rounded-full p-[2px] ml-4">
+                                    <div class="bg-gray-900 px-6 py-0.5 rounded-full">
+                                        <!-- Use gradient for text color -->
+                                        <div class="bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-blue-500 font-bold paralucent">
+                                            Reset Profile Picture
+                                        </div>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Room Management -->
+                    <div class="mt-8">
+                        <h2 class="text-2xl font-bold text-yellow-400 paralucent">Room Management</h2>
+                        <div class="flex flex-col mt-4">
+                            <h3 class="text-xl font-bold text-green-400 paralucent">Rooms you own</h3>
+                            <div id="owner-room-display">
+                                <p class="text-gray-400 paralucent">You don't own any rooms.</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col mt-4">
+                            <h3 class="text-xl font-bold text-blue-500 paralucent">Rooms you're a part of</h3>
+                            <div id="joined-room-display">
+                                <p class="text-gray-400 paralucent">You're not in any rooms.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Download Data -->
+                    <div class="mt-8">
+                        <h2 class="text-2xl font-bold text-purple-500 paralucent">Download Data</h2>
+                        <button class="bg-purple-500 hover:bg-purple-600 transition duration-200 rounded-lg px-4 py-2 text-white font-bold text-sm mt-4 focus:outline-none">
+                            Download My Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    // Make request to /api/rooms/ first.
+    let rooms = [];
+
+    fetch('/api/rooms')
+        .then(response => response.json())
+        .then(data => {
+            rooms = data;
+
+            // Now make a request to /api/user/rooms to get the rooms the user is in.
+            let userRooms = {
+                "owned_rooms": [],
+                "joined_rooms": []
+            };
+
+            fetch('/api/user/rooms')
+                .then(response => response.json())
+                .then(data => {
+                    userRooms = data;
+                    displayRooms(rooms.rooms, userRooms);
+                    successNotification("Loaded all of your rooms.");
+                })
+                .catch(error => {
+                    errorNotification("Failed to load your rooms.");
+                    errorNotification(error.stack);
+                    console.log(error);
+                });
+        })
+        .catch(error => {
+            errorNotification("Failed to load chatrooms.");
+            errorNotification(error.stack);
+        });
+
+    // Now we have all of the rooms, we can display them. For each room, display its name in green if they own it, blue if they are in it, and grey if they are not in it. Each room will be displayed like a table row.
+    function displayRooms(rooms, userRooms) {
+        let ownerRoomDisplay = document.getElementById("owner-room-display");
+        let joinedRoomDisplay = document.getElementById("joined-room-display");
+        ownerRoomDisplay.innerHTML = "";
+        joinedRoomDisplay.innerHTML = "";
+
+        for (let room of rooms) {
+            // Create the row.
+            let row = document.createElement("div");
+            row.classList.add("flex", "flex-row", "justify-between", "items-center", "p-4", "bg-gray-800", "rounded-lg", "shadow-lg", "mb-4", "hover:bg-gray-700", "cursor-pointer", "transition", "duration-200", "paralucent");
+
+            // Create the name.
+            let name = document.createElement("p");
+            name.classList.add("text-xl", "font-bold");
+            name.innerText = room.name;
+            if (userRooms.owned_rooms.map(room => room.id).includes(room.id)) {
+                name.classList.add("text-green-400");
+            } else if (userRooms.joined_rooms.map(room => room.id).includes(room.id)) {
+                name.classList.add("text-blue-400");
+            }
+
+            // Create the owner.
+            let owner = document.createElement("p");
+            owner.classList.add("text-gray-400");
+            owner.innerText = room.owner.username;
+
+            // Create the user count.
+            let userCount = document.createElement("p");
+            userCount.classList.add("text-gray-400");
+            userCount.innerText = `${room.user_count} members`;
+
+            // Create the join button.
+            let joinButton = document.createElement("button");
+            // If user owns or is in room, make button say chat. Otherwise, make it say join.
+            if (userRooms.owned_rooms.map(room => room.id).includes(room.id)) {
+                joinButton.innerText = "Manage";
+                joinButton.classList.add("bg-blue-500", "hover:bg-blue-600", "transition", "duration-200", "rounded-lg", "px-4", "py-2", "text-white", "font-bold", "text-sm", "focus:outline-none");
+
+            } else if (userRooms.joined_rooms.map(room => room.id).includes(room.id)) {
+                joinButton.innerText = "Leave";
+                joinButton.classList.add("bg-red-500", "hover:bg-red-600", "transition", "duration-200", "rounded-lg", "px-4", "py-2", "text-white", "font-bold", "text-sm", "focus:outline-none");
+            }
+
+            // Append the elements to the row.
+            row.appendChild(name);
+            row.appendChild(owner);
+            row.appendChild(userCount);
+            row.appendChild(joinButton);
+
+            // Append the row to the appropriate display.
+            if (userRooms.owned_rooms.map(room => room.id).includes(room.id)) {
+                ownerRoomDisplay.appendChild(row);
+            } else if (userRooms.joined_rooms.map(room => room.id).includes(room.id)) {
+                joinedRoomDisplay.appendChild(row);
+            }
+        }
+
+        if (ownerRoomDisplay.innerHTML === "") {
+            ownerRoomDisplay.innerHTML = "<p class=\"text-gray-400 paralucent\">No chatrooms here.</p>";
+        }
+        if (joinedRoomDisplay.innerHTML === "") {
+            joinedRoomDisplay.innerHTML = "<p class=\"text-gray-400 paralucent\">No chatrooms here.</p>";
+        }
+    }
+
+    function changeProfilePicture() {
+        // Create a form to submit the image.
+        let form = document.createElement("form");
+        form.className = "hidden";
+        form.method = "POST";
+        form.action = "/api/user/pfp";
+        form.enctype = "multipart/form-data";
+
+        // Create the file input.
+        let fileInput = document.createElement("input");
+        fileInput.type = "file";
+        fileInput.name = "file";
+        fileInput.accept = "image/*";
+        fileInput.required = true;
+
+        // Click the file input.
+        fileInput.click();
+
+        // When the file input changes, create a POST request to /api/user/pfp.
+        fileInput.addEventListener("change", () => {
+            // Create a FormData object to send the file.
+            let formData = new FormData(form);
+            formData.append("pfp", fileInput.files[0]);
+
+            // Create a request to /api/user/pfp.
+            let request = new XMLHttpRequest();
+            request.open("POST", "/api/user/pfp");
+            request.send(formData);
+
+            // When the request loads, reload the page.
+            request.addEventListener("load", () => {
+                if (request.status === 200) {
+                    successNotification("Changed profile picture.");
+                    window.location.reload();
+                } else {
+                    errorNotification("Failed to change profile picture.");
+                    errorNotification(request.responseText);
+                }
+            });
+        });
+
+        // Append the file input to the form.
+        form.appendChild(fileInput);
+    }
+
+    // Reset profile picture.
+    function resetProfilePicture() {
+        // Create a request to /api/user/pfp.
+        let request = new XMLHttpRequest();
+        request.open("DELETE", "/api/user/pfp");
+        request.send();
+
+        // When the request loads, reload the page.
+        request.addEventListener("load", () => {
+            if (request.status === 200) {
+                successNotification("Reset profile picture.");
+                window.location.reload();
+            } else {
+                errorNotification("Failed to reset profile picture.");
+                errorNotification(request.responseText);
+            }
+        });
+    }
+</script>
+
+
+</body>
+</html>

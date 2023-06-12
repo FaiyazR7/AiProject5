@@ -3,20 +3,27 @@ from flask import current_app as app
 from datetime import datetime
 
 def home_get():
-    if "user_id" in session:
-        c = app.config["db"].cursor()
-        c.execute("SELECT room_id FROM room_users WHERE user_id = ?", (session["user_id"],))
-        room_ids = c.fetchall()
-        print(room_ids)
-        rooms = []
-        for room_id in room_ids:
-            c.execute("SELECT * FROM rooms WHERE id = ?", (room_id[0],))
-            rooms.append(c.fetchone())
-        c.close()
-        return render_template('home.html', rooms=rooms,)
-    else:
-        return redirect("/login")
+    # If user is logged in
+    if 'user_id' in session:
+        # Fetch user data from database by username
+        c = app.config['conn'].cursor()
 
-def home_post():
-    room_id = request.form["room_id"]
-    return redirect(f"/room/{room_id}")
+        c.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],))
+        user = c.fetchone()
+        # Is none? Redirect to login page
+        if not user:
+            return redirect('/login')
+
+        # Build user object
+        user = {
+            'user_id': user[0],
+            'username': user[1],
+            'profile_pic': user[3]
+        }
+
+        return render_template('home.html', user=user)
+
+    # If user is not logged in
+    else:
+        # Render index page by default
+        return redirect('/login')

@@ -1,17 +1,80 @@
 <!-- This is going to be a really simple chat interface. This template contains only the header, where the user can see the app name and profile areas. -->
 
 <!-- Header container (uses tailwind) -->
-<header class="flex items-center justify-between py-4 px-6 bg-gray-100">
-  <h1 class="text-gray-800 text-2xl font-bold tracking-tight">ChatApp</h1>
-  <div class="flex items-center space-x-4">
-    <button class="bg-gray-200 text-gray-700 rounded-full p-2">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-      </svg>
-    </button>
-    <a href="#" class="flex items-center text-gray-800 hover:text-gray-700">
-      <img class="w-8 h-8 rounded-full mr-2" src="https://via.placeholder.com/50" alt="User profile picture">
-      <span>My Profile</span>
-    </a>
-  </div>
+<header class="flex items-center justify-between py-4 px-6 bg-gray-800"> <!-- hover: make sure it is clipped -->
+    <a href="/" class="text-2xl font-bold tracking-tight paralucent text-gray-200 hover:bg-gradient-to-r from-green-400 to-blue-500 hover:bg-clip-text hover:text-transparent duration-300">The GPT Arena</a>
+    <div class="flex items-center space-x-4">
+        <!-- If the user is logged in, show the profile area -->
+        {% if user %}
+            <!-- Profile dropdown. Main displays a circular image, and the dropdown shows links to important things. Like rooms, profile, and logout. For now use placeholder for image. -->
+            <div class="relative">
+                <button class="flex items-center space-x-2 text-gray-700 hover:text-gray-600 focus:outline-none focus:text-gray-600"
+                        id="user-menu" aria-haspopup="true">
+                    <!-- Profile pic. Use placeholder for now. Put a two pixel gap and a 4px round red border around the image. -->
+                    <div class="w-12 h-12 rounded-full overflow-hidden bg-gray-500 p-[2px] from-green-400 to-blue-500">
+                        <img src="{{ user.profile_pic }}" alt="Profile picture"
+                             class="border-2 border-gray-800 rounded-full" id="user-profile-pic">
+                    </div>
+                </button>
+                <div class="absolute right-0 mt-2 w-48 bg-gray-900 rounded-md overflow-hidden shadow-xl z-10 duration-300 opacity-0 paralucent"
+                     role="menu" aria-orientation="vertical" aria-labelledby="user-menu">
+                    <!-- Say hello to the user -->
+                    <div class="px-4 py-2 text-lg text-gray-200 border-b border-gray-500">Hello, <b>{{ user.username }}</b></div>
+                    <a href="/home" class="block px-4 py-2 text-lg text-gray-200 bg-gray-900 hover:bg-gray-800" role="menuitem">Dashboard</a>
+                    <a href="/settings" class="block px-4 py-2 text-lg text-gray-200 bg-gray-900 hover:bg-gray-800"
+                       role="menuitem">Settings</a>
+                    <a href="/logout" class="block px-4 py-2 text-lg text-gray-200 bg-gray-900 hover:bg-gray-800" role="menuitem">Sign
+                        out</a>
+                </div>
+            </div>
+        {% else %}
+            <!-- If the user is not logged in, show the login and register buttons -->
+            <a href="/login" class="text-gray-200 text-lg hover:text-gray-300 paralucent">Login</a>
+            <a href="/register" class="text-gray-200 text-lg hover:text-gray-300 paralucent">Register</a>
+        {% endif %}
+    </div>
+
+    <script>
+        // Manages the dropdown menu for the profile area
+        function toggleProfileArea() {
+            // Change the height of the dropdown menu
+            var menu = document.getElementById("user-menu").nextElementSibling;
+            // Swap tailwind classes to change the opacity
+            if (menu.classList.contains("opacity-0")) {
+                menu.classList.remove("opacity-0");
+                menu.classList.add("opacity-100");
+            } else {
+                menu.classList.remove("opacity-100");
+                menu.classList.add("opacity-0");
+            }
+
+            // Change the profile picture border color by switching tailwind classes
+            var pic = document.getElementById("user-menu").firstElementChild;
+
+            // Toggle between gray border and blue-to-green gradient border.
+            if (pic.classList.contains("bg-gray-500")) {
+                pic.classList.remove("bg-gray-500");
+                pic.classList.add("bg-gradient-to-r");
+            } else {
+                pic.classList.remove("bg-gradient-to-r");
+                pic.classList.add("bg-gray-500");
+            }
+        }
+
+        // Event listener to close menu when clicking outside of it
+        window.addEventListener("click", function(event) {
+            // If the user clicks outside of the menu and it isn't a click on the profile button
+            if (!event.target.matches("#user-menu") && !event.target.matches("#user-profile-pic")) {
+                // Get the menu
+                var menu = document.getElementById("user-menu").nextElementSibling;
+                // If the menu is open, close it
+                if (menu.classList.contains("opacity-100")) {
+                    toggleProfileArea();
+                }
+            }
+        });
+
+        // Add event listener to the profile button
+        document.getElementById("user-menu").addEventListener("click", toggleProfileArea);
+    </script>
 </header>

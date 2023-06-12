@@ -1,20 +1,181 @@
 <!DOCTYPE html>
-<html>
-    <head>
-    </head>
-    <body>        
-        <h1>HOME PAGE</h1>
-        <h4>make a <a href="/new_room">new room</a></h4>
+<html lang="en" class="bg-gray-900">
+<head>
+    {% with title="Home" %}
+        {% include('partials/meta.html') %}
+    {% endwith %}
+    {% include('partials/css.html') %}
+    {% include('partials/js.html') %}
+</head>
+<body>
+{% include('partials/header.html', { 'user': user }) %}
 
-        <div class="row">
-            <div class="rooms">
-                {% for room in rooms %}
-                    <form method="post" name="rooms">
-                        <input type="hidden" name="room_id" value="{{room[0]}}">
-                        <input type="submit" value="{{room[1]}}">
-                    </form>
-                {% endfor %}
+<div class="container mx-auto h-full">
+    <div class="flex flex-wrap">
+        <div class="w-full">
+            <div class="flex flex-row justify-center items-center p-4 h-full">
+                <div class="p-4">
+                    <h1 class="text-5xl font-bold">
+                        <span class="bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-blue-500 stinger">The GPT Arena</span>
+                    </h1>
+                    <p class="text-gray-600 paralucent text-xl">Welcome to the <strike>backrooms</strike> chatrooms! Here you can chat with other people, or even create your own chatroom!</p>
+
+                    <!-- Chatroom list -->
+                    <div class="mt-4">
+                        <h2 class="text-2xl font-bold text-green-400 paralucent">Rooms you own</h2>
+                        <div id="owner-room-display">
+                            <p class="text-gray-400 paralucent">No chatrooms available.</p>
+                        </div>
+                        <h2 class="text-2xl font-bold paralucent text-blue-500">Rooms you're a part of</h2>
+                        <div id="joined-room-display">
+                            <p class="text-gray-400 paralucent">No chatrooms available.</p>
+                        </div>
+                        <h2 class="text-2xl font-bold paralucent text-gray-400">Other chatrooms</h2>
+                        <div id="room-display">
+                            <p class="text-gray-400 paralucent">No chatrooms available.</p>
+                        </div>
+                        <!-- Create row with centered button to create a room. -->
+                        <div class="flex flex-row justify-center items-center p-4">
+                            <button onclick="window.location.href = '/new_room'">
+                                <!-- Green to blue gradient -->
+                                <div class="bg-gradient-to-r from-green-400 to-blue-500 rounded-full p-[2px]">
+                                    <div class="bg-gray-900 px-6 py-0.5 rounded-full">
+                                        <!-- Use gradient for text color -->
+                                        <div class="bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-blue-500 font-bold paralucent">
+                                            New Room
+                                        </div>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div> 
-    </body>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Make request to /api/rooms/ first.
+    let rooms = [];
+
+    fetch('/api/rooms')
+        .then(response => response.json())
+        .then(data => {
+            rooms = data;
+
+            // Now make a request to /api/user/rooms to get the rooms the user is in.
+            let userRooms = {
+                "owned_rooms": [],
+                "joined_rooms": []
+            };
+
+            fetch('/api/user/rooms')
+                .then(response => response.json())
+                .then(data => {
+                    userRooms = data;
+                    displayRooms(rooms.rooms, userRooms);
+                    successNotification("Loaded all of your rooms.");
+                })
+                .catch(error => {
+                    errorNotification("Failed to load your rooms.");
+                    errorNotification(error.stack);
+                    console.log(error);
+                });
+        })
+        .catch(error => {
+            errorNotification("Failed to load chatrooms.");
+            errorNotification(error.stack);
+        });
+
+    // Now we have all of the rooms, we can display them. For each room, display its name in green if they own it, blue if they are in it, and grey if they are not in it. Each room will be displayed like a table row.
+    function displayRooms(rooms, userRooms) {
+        let roomDisplay = document.getElementById("room-display");
+        let ownerRoomDisplay = document.getElementById("owner-room-display");
+        let joinedRoomDisplay = document.getElementById("joined-room-display");
+        roomDisplay.innerHTML = "";
+        ownerRoomDisplay.innerHTML = "";
+        joinedRoomDisplay.innerHTML = "";
+
+        if (rooms.length === 0) {
+            roomDisplay.innerHTML = "<p class=\"text-gray-400 paralucent\">No chatrooms available.</p>";
+            return;
+        }
+
+        for (let room of rooms) {
+            // Create the row.
+            let row = document.createElement("div");
+            row.classList.add("flex", "flex-row", "justify-between", "items-center", "p-4", "bg-gray-800", "rounded-lg", "shadow-lg", "mb-4", "hover:bg-gray-700", "cursor-pointer", "transition", "duration-200", "paralucent");
+            row.setAttribute("onclick", `window.location.href = '/room/${room.id}'`);
+
+            // Create the profile picture and name inline.
+            let name = document.createElement("p");
+            name.classList.add("text-xl", "font-bold", "inline");
+            let profilePicture = document.createElement("img");
+            profilePicture.classList.add("w-12", "h-12", "rounded-full", "mr-4", "inline-block");
+            profilePicture.setAttribute("src", room.profile_pic);
+            name.appendChild(profilePicture);
+            name.innerHTML += room.name;
+            if (userRooms.owned_rooms.map(room => room.id).includes(room.id)) {
+                name.classList.add("text-green-400");
+            } else if (userRooms.joined_rooms.map(room => room.id).includes(room.id)) {
+                name.classList.add("text-blue-400");
+            } else {
+                name.classList.add("text-gray-400");
+            }
+
+            // Create the profile picture and owner username inline.
+            let owner = document.createElement("p");
+            owner.classList.add("text-gray-400");
+            let ownerProfilePicture = document.createElement("img");
+            ownerProfilePicture.classList.add("w-12", "h-12", "rounded-full", "mr-4", "inline-block");
+            ownerProfilePicture.setAttribute("src", room.owner.profile_pic);
+            owner.appendChild(ownerProfilePicture);
+            owner.innerHTML += 'Owned by <b>' + room.owner.username + '</b>';
+
+
+            // Create the user count.
+            let userCount = document.createElement("p");
+            userCount.classList.add("text-gray-400");
+            userCount.innerText = `${room.user_count} members`;
+
+            // Create the join button.
+            let joinButton = document.createElement("button");
+            // If user owns or is in room, make button say chat. Otherwise, make it say join.
+            if (userRooms.owned_rooms.map(room => room.id).includes(room.id) || userRooms.joined_rooms.map(room => room.id).includes(room.id)) {
+                joinButton.innerText = "Chat";
+            } else {
+                joinButton.innerText = "Join";
+            }
+            joinButton.classList.add("bg-blue-500", "hover:bg-blue-600", "transition", "duration-200", "rounded-lg", "px-4", "py-2", "text-white", "font-bold", "text-sm", "focus:outline-none");
+
+            // Append the elements to the row.
+            row.appendChild(name);
+            row.appendChild(owner);
+            row.appendChild(userCount);
+            row.appendChild(joinButton);
+
+            // Append the row to the appropriate display.
+            if (userRooms.owned_rooms.map(room => room.id).includes(room.id)) {
+                ownerRoomDisplay.appendChild(row);
+            } else if (userRooms.joined_rooms.map(room => room.id).includes(room.id)) {
+                joinedRoomDisplay.appendChild(row);
+            } else {
+                roomDisplay.appendChild(row);
+            }
+        }
+
+        // For all categories, if there's no rooms, display a message.
+        if (roomDisplay.innerHTML === "") {
+            roomDisplay.innerHTML = "<p class=\"text-gray-400 paralucent\">No chatrooms here.</p>";
+        }
+        if (ownerRoomDisplay.innerHTML === "") {
+            ownerRoomDisplay.innerHTML = "<p class=\"text-gray-400 paralucent\">No chatrooms here. Why don't you create one?</p>";
+        }
+        if (joinedRoomDisplay.innerHTML === "") {
+            joinedRoomDisplay.innerHTML = "<p class=\"text-gray-400 paralucent\">No chatrooms here. Some open chatrooms are available below.</p>";
+        }
+    }
+</script>
+</body>
 </html>

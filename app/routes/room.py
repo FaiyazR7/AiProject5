@@ -1,60 +1,82 @@
 from flask import render_template, request, redirect, session
 from flask import current_app as app
 from datetime import datetime
-import chatGPT
-def room_get(id):
-    # Check if user is logged in
-    if not "user_id" in session:
-        return redirect("/login")
-    
-    # Get sqlite c from app config
-    c = app.config['db'].cursor()
 
-    # check if user is in room
-    c.execute("SELECT * FROM room_users WHERE user_id = ? AND room_id = ?", (session["user_id"], id))
-    if c.fetchone() is None:
-        return redirect("/home")
-    
-    # Get room info
-    c.execute("SELECT * FROM rooms WHERE id = ?", (id,))
-    room = c.fetchone()
 
-    # Get messages
-    c.execute("SELECT * FROM messages WHERE room_id = ?", (id,))
-    messages = c.fetchall()
+def room_get(room_id):
+    # If user is logged in
+    if 'user_id' in session:
+        # Fetch user data from database by username
+        c = app.config['conn'].cursor()
 
-    # render the html
-    return render_template("room.html", room=room, messages=messages)
+        # Get user using session['user_id']
+        c.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],))
+        user_data = c.fetchone()
 
-def room_post(id):
-    # Check if user is logged in
-    if not "user_id" in session:
-        return redirect("/login")
-    
-    # Get sqlite c from app config
-    db = app.config['db']
-    c = db.cursor()
+        if user_data is None:
+            return redirect('/login')
 
-    # check if user is in room
-    c.execute("SELECT * FROM room_users WHERE user_id = ? AND room_id = ?", (session["user_id"], id))
-    if c.fetchone() is None:
-        return redirect("/home")
-    
-    # put the message in the database
-    if "content" in request.form:
-        content = request.form["content"]
-        current_room_id = id
-        response = None
-        if (content[0] == "!"):
-            response = chatGPT.ans(content)
-        
-        time = datetime.now().strftime("%m/%d/%Y, %H:%M:%S.%f")
-        print(time)
-        c.execute("INSERT INTO messages (room_id, user_id, content, timestamp) VALUES (?, ?, ?, ?)", (current_room_id, session["user_id"], content, time))
-        if (response is not None):
-            c.execute("INSERT INTO messages (room_id, user_id, content, timestamp) VALUES (?, ?, ?, ?)", (current_room_id, 1, response, time))
-        #print(f"content: {content}")
-        c.close()
-        db.commit()
+        user = {
+            'user_id': user_data[0],
+            'username': user_data[1],
+            'profile_pic': user_data[3]
+        }
 
-    return redirect(f"/room/{id}")
+        # Get room data
+        c.execute('SELECT * FROM rooms WHERE id = ?', (room_id,))
+        room = c.fetchone()
+
+        # Is none? Display error
+        if not room:
+            return render_template('404.html', error="Room not found")
+
+        # Build room object
+        room_info = {
+            'room_id': room[0],
+            'name': room[1],
+            'profile_pic': room[2],
+        }
+
+        c.execute('SELECT * FROM users WHERE id=?', (room[3],))
+        owner = c.fetchone()
+        owner_info = {
+            'id': owner[0],
+            'username': owner[1],
+            'profile_pic': owner[3]
+        }
+        # Set room owner
+        room_info['owner'] = owner_info
+        # Get number of people using room users.
+        c.execute('SELECT * FROM room_users WHERE room_id=?', (room_id,))
+        room_users_list = c.fetchall()
+        num_users = len(room_users_list)
+        room_info['user_count'] = num_users
+
+        # From room_users, make sure that the user is in the room. If not, give them a prompt to join.
+        user_in_room = False
+        for room_user in room_users_list:
+            if room_user[2] == session['user_id']:
+                user_in_room = True
+                break
+
+        # If user is not in room, give them a prompt to join.
+        if not user_in_room:
+            return render_template('join_room.html', user=user, room=room_info)
+
+        # Load the users in the room. All of them.
+        c.execute('SELECT * FROM room_users WHERE room_id=?', (room_id,))
+        room_users = c.fetchall()
+        room_users_data = []
+        for room_user in room_users:
+            c.execute('SELECT * FROM users WHERE id=?', (room_user[2],))
+            user_data = c.fetchone()
+            room_users_data.append({
+                'id': user_data[0],
+                'username': user_data[1],
+                'profile_pic': user_data[3]
+            })
+
+        # Send user to room by rendering room.html.
+        return render_template('room.html', user=user, room=room_info, room_users=room_users_data)
+    else:
+        return redirect('/login')

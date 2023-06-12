@@ -2,9 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-    .btn {
-        @apply px-4 py-2 rounded-md text-white font-semibold;
-    }
+.paralucent {
+    font-family: "paralucent", sans-serif;
 }
 
+.stinger {
+    font-family: "stinger-variable", "Inter", "Helvetica Neue", Arial, sans-serif;
+}

@@ -4,25 +4,22 @@ import sqlite3
 
 def new_room_get():
     if "user_id" in session:
-        return render_template('new_room.html')
+        # Fetch user data from database by username
+        c = app.config['conn'].cursor()
+
+        c.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],))
+        user = c.fetchone()
+        # Is none? Redirect to login page
+        if not user:
+            return redirect('/login')
+
+        # Build user object
+        user = {
+            'user_id': user[0],
+            'username': user[1],
+            'profile_pic': user[3]
+        }
+
+        return render_template('new_room.html', user=user)
     else:
         redirect("/login")
-
-def new_room_post():
-    name = request.form["name"]
-    print(name)
-    if name == "":
-        error = "Please enter a name for the room"
-        return render_template('new_room.html', error=error)
-    
-    db = app.config['db']
-    c = db.cursor()
-    
-    c.execute("SELECT count(id) FROM rooms")
-    room_id = c.fetchone()[0]
-    print(f"room_id: {room_id}")
-    c.execute("INSERT INTO rooms (name, owner_id) VALUES (?, ?)", (name, session["user_id"]))
-    c.execute("INSERT INTO room_users (room_id, user_id) VALUES (?, ?)", (room_id, session["user_id"]))
-    c.close()
-    db.commit()
-    return redirect("/home")

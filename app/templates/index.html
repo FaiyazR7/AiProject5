@@ -1,15 +1,52 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="bg-gray-900">
 <head>
-    {% include('partials/meta.html', { 'title': 'Home' }) %}
+    {% with title="Landing" %}
+        {% include('partials/meta.html') %}
+    {% endwith %}
     {% include('partials/css.html') %}
     {% include('partials/js.html') %}
 </head>
 <body>
-    {% include('partials/header.html', { 'user': user }) %}
-    
-    <h4>If already do have an account <a href="/login">login</a></h4>
-    <h4>If you do not yet have an account <a href="/register">register</a></h4>
-    
+{% include('partials/header.html', { 'user': user }) %}
+<!-- Create a responsive and beautiful Tailwindcss design for the landing page of a chat application. -->
+<div class="container mx-auto h-full">
+    <div class="flex flex-wrap">
+        <div class="w-full md:w-1/2">
+            <div class="flex flex-row justify-center items-center p-4 h-full">
+                <div class="p-4">
+                    <h1 class="text-5xl font-bold"><span
+                            class="bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-blue-500 stinger">The GPT Arena</span>
+                    </h1>
+                    <p class="text-gray-600 paralucent text-xl">Meet new friends and forge connections while having
+                        access to a custom
+                        ChatGPT model at any time. One could say it's like <a href="https://poe.com"
+                                                                              class="text-blue-500">Poe</a> but
+                        collaborative.</p>
+                    <!-- Gradient background button. -->
+                    <div class="flex flex-row justify-center items-center mt-4 space-x-2">
+                        {% if user %}
+                            {% with text='Home',target='/home' %}
+                                {% include('partials/linkbutton.html') %}
+                            {% endwith %}
+                        {% else %}
+                            {% with text='Login',target='/login' %}
+                                {% include('partials/linkbutton.html') %}
+                            {% endwith %}
+                            {% with text='Register',target='/register' %}
+                                {% include('partials/linkbutton.html') %}
+                            {% endwith %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="w-full md:w-1/2">
+            <div class="p-4">
+                <img src="https://picsum.photos/500/300" alt="Chat App" class="rounded-lg">
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>
