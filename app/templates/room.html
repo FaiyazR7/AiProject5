@@ -107,7 +107,7 @@
             messageElement.classList.add('bg-gray-700', 'text-white', 'rounded-lg', 'py-2', 'px-4', 'w-max');
         }
         console.log(data.message);
-        messageElement.innerHTML = "<p class='max-w-3xl w-full'>" + message.content + "</p>";
+        messageElement.innerHTML = "<p class='max-w-3xl w-full'>" +data.message + "</p>";
         let messageWrapperElement = document.createElement('div');
         messageWrapperElement.classList.add('flex', 'flex-col', 'justify-start', 'mb-4');
         if (data.user.user_id == userId) {
@@ -190,8 +190,7 @@
                 messageContainer.insertBefore(messageWrapperElement, messageContainer.firstChild);
                 beforeTimestamp = Math.round(message.timestamp);
             });
-            // Scroll down to where it was before
-            messageContainer.scrollTop = messageContainer.scrollHeight - e.target.scrollHeight;
+        
         };
 
         // Send request
